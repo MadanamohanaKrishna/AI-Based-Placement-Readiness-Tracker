@@ -1,664 +1,324 @@
-// Global State
-const appState = {
-    currentStep: 0,
-    selectedRole: null,
-    selectedCompanies: [],
-    assessmentData: null,
-    timeline: null,
-    roadmap: null,
-    progress: 0,
-    streak: 0,
-    skillProgress: {},
-    userProfile: {
-        skills: {},
-        strengths: [],
-        weaknesses: [],
-        areasToImprove: []
-    }
-};
+// Quiz Implementation - Role Specific
+let currentQuestion = 0;
+let quizAnswers = [];
+let quizQuestions = [];
 
-// Job Roles Data
-const jobRoles = [
-    {
-        id: 'frontend-dev',
-        name: 'Frontend Developer',
-        category: 'development',
-        icon: 'fa-code',
-        description: 'Build user interfaces and web applications',
-        skills: ['HTML', 'CSS', 'JavaScript', 'React', 'Vue', 'Angular']
-    },
-    {
-        id: 'backend-dev',
-        name: 'Backend Developer',
-        category: 'development',
-        icon: 'fa-server',
-        description: 'Develop server-side logic and databases',
-        skills: ['Java', 'Python', 'Node.js', 'SQL', 'MongoDB', 'APIs']
-    },
-    {
-        id: 'fullstack-dev',
-        name: 'Full Stack Developer',
-        category: 'development',
-        icon: 'fa-layer-group',
-        description: 'Handle both frontend and backend development',
-        skills: ['JavaScript', 'React', 'Node.js', 'SQL', 'MongoDB', 'DevOps']
-    },
-    {
-        id: 'data-scientist',
-        name: 'Data Scientist',
-        category: 'data',
-        icon: 'fa-chart-line',
-        description: 'Analyze and interpret complex data',
-        skills: ['Python', 'R', 'Machine Learning', 'Statistics', 'SQL', 'Tableau']
-    },
-    {
-        id: 'data-analyst',
-        name: 'Data Analyst',
-        category: 'data',
-        icon: 'fa-database',
-        description: 'Transform data into insights',
-        skills: ['SQL', 'Excel', 'Python', 'Tableau', 'Power BI', 'Statistics']
-    },
-    {
-        id: 'ml-engineer',
-        name: 'ML Engineer',
-        category: 'data',
-        icon: 'fa-brain',
-        description: 'Build and deploy machine learning models',
-        skills: ['Python', 'TensorFlow', 'PyTorch', 'Deep Learning', 'MLOps']
-    },
-    {
-        id: 'ui-ux-designer',
-        name: 'UI/UX Designer',
-        category: 'design',
-        icon: 'fa-palette',
-        description: 'Design user experiences and interfaces',
-        skills: ['Figma', 'Adobe XD', 'Sketch', 'Prototyping', 'User Research']
-    },
-    {
-        id: 'product-designer',
-        name: 'Product Designer',
-        category: 'design',
-        icon: 'fa-pencil-ruler',
-        description: 'Design end-to-end product experiences',
-        skills: ['Design Thinking', 'Figma', 'User Research', 'Prototyping']
-    },
-    {
-        id: 'devops-engineer',
-        name: 'DevOps Engineer',
-        category: 'other',
-        icon: 'fa-cogs',
-        description: 'Manage infrastructure and deployment',
-        skills: ['Docker', 'Kubernetes', 'AWS', 'CI/CD', 'Linux', 'Terraform']
-    },
-    {
-        id: 'qa-engineer',
-        name: 'QA Engineer',
-        category: 'other',
-        icon: 'fa-check-circle',
-        description: 'Ensure software quality through testing',
-        skills: ['Selenium', 'Testing', 'Automation', 'JIRA', 'API Testing']
-    },
-    {
-        id: 'mobile-dev',
-        name: 'Mobile Developer',
-        category: 'development',
-        icon: 'fa-mobile-alt',
-        description: 'Build mobile applications',
-        skills: ['React Native', 'Flutter', 'iOS', 'Android', 'Mobile UI/UX']
-    },
-    {
-        id: 'cloud-architect',
-        name: 'Cloud Architect',
-        category: 'other',
-        icon: 'fa-cloud',
-        description: 'Design cloud infrastructure solutions',
-        skills: ['AWS', 'Azure', 'GCP', 'Cloud Security', 'Architecture']
-    }
-];
-
-// Companies Data
-const companies = [
-    // Product-based MNCs
-    { id: 'google', name: 'Google', type: 'Product Based', category: 'mnc', color: '#4285F4' },
-    { id: 'microsoft', name: 'Microsoft', type: 'Product Based', category: 'mnc', color: '#00A4EF' },
-    { id: 'amazon', name: 'Amazon', type: 'Product Based', category: 'mnc', color: '#FF9900' },
-    { id: 'apple', name: 'Apple', type: 'Product Based', category: 'mnc', color: '#000000' },
-    { id: 'meta', name: 'Meta', type: 'Product Based', category: 'mnc', color: '#1877F2' },
-    { id: 'netflix', name: 'Netflix', type: 'Product Based', category: 'mnc', color: '#E50914' },
-    { id: 'adobe', name: 'Adobe', type: 'Product Based', category: 'mnc', color: '#FF0000' },
-    { id: 'salesforce', name: 'Salesforce', type: 'Product Based', category: 'mnc', color: '#00A1E0' },
-    { id: 'oracle', name: 'Oracle', type: 'Product Based', category: 'mnc', color: '#F80000' },
-    { id: 'sap', name: 'SAP', type: 'Product Based', category: 'mnc', color: '#0FAAFF' },
-    { id: 'ibm', name: 'IBM', type: 'Product Based', category: 'mnc', color: '#1F70C1' },
-    { id: 'cisco', name: 'Cisco', type: 'Product Based', category: 'mnc', color: '#1BA0D7' },
-    { id: 'intel', name: 'Intel', type: 'Product Based', category: 'mnc', color: '#0071C5' },
-    { id: 'nvidia', name: 'NVIDIA', type: 'Product Based', category: 'mnc', color: '#76B900' },
-    { id: 'qualcomm', name: 'Qualcomm', type: 'Product Based', category: 'mnc', color: '#3253DC' },
-    
-    // Indian Product Companies
-    { id: 'flipkart', name: 'Flipkart', type: 'Product Based', category: 'product', color: '#2874F0' },
-    { id: 'paytm', name: 'Paytm', type: 'Product Based', category: 'product', color: '#00BAF2' },
-    { id: 'ola', name: 'Ola', type: 'Product Based', category: 'product', color: '#000000' },
-    { id: 'swiggy', name: 'Swiggy', type: 'Product Based', category: 'product', color: '#FC8019' },
-    { id: 'zomato', name: 'Zomato', type: 'Product Based', category: 'product', color: '#E23744' },
-    { id: 'phonepe', name: 'PhonePe', type: 'Product Based', category: 'product', color: '#5F259F' },
-    { id: 'cred', name: 'CRED', type: 'Product Based', category: 'product', color: '#000000' },
-    { id: 'razorpay', name: 'Razorpay', type: 'Product Based', category: 'product', color: '#0C2451' },
-    { id: 'freshworks', name: 'Freshworks', type: 'Product Based', category: 'product', color: '#00C9A7' },
-    { id: 'zoho', name: 'Zoho', type: 'Product Based', category: 'product', color: '#F06D20' },
-    
-    // Startups
-    { id: 'zerodha', name: 'Zerodha', type: 'Fintech', category: 'startup', color: '#387ED1' },
-    { id: 'meesho', name: 'Meesho', type: 'E-commerce', category: 'startup', color: '#6C1E7D' },
-    { id: 'byju', name: 'BYJU\'S', type: 'Edtech', category: 'startup', color: '#8E24AA' },
-    { id: 'unacademy', name: 'Unacademy', type: 'Edtech', category: 'startup', color: '#08BD80' },
-    { id: 'dunzo', name: 'Dunzo', type: 'Delivery', category: 'startup', color: '#F04136' },
-    { id: 'urbanco', name: 'Urban Company', type: 'Services', category: 'startup', color: '#6B38FB' },
-    { id: 'groww', name: 'Groww', type: 'Fintech', category: 'startup', color: '#00D09C' },
-    { id: 'spinny', name: 'Spinny', type: 'Automotive', category: 'startup', color: '#FF6B6B' },
-    { id: 'licious', name: 'Licious', type: 'Food Tech', category: 'startup', color: '#D61F26' },
-    { id: 'sharechat', name: 'ShareChat', type: 'Social Media', category: 'startup', color: '#FE2C55' },
-    
-    // Service-based
-    { id: 'tcs', name: 'TCS', type: 'Service Based', category: 'service', color: '#0066B3' },
-    { id: 'infosys', name: 'Infosys', type: 'Service Based', category: 'service', color: '#007CC3' },
-    { id: 'wipro', name: 'Wipro', type: 'Service Based', category: 'service', color: '#7B3F96' },
-    { id: 'hcl', name: 'HCL', type: 'Service Based', category: 'service', color: '#0066CC' },
-    { id: 'cognizant', name: 'Cognizant', type: 'Service Based', category: 'service', color: '#00BEFF' },
-    { id: 'accenture', name: 'Accenture', type: 'Service Based', category: 'service', color: '#A100FF' },
-    { id: 'capgemini', name: 'Capgemini', type: 'Service Based', category: 'service', color: '#0070AD' },
-    { id: 'deloitte', name: 'Deloitte', type: 'Service Based', category: 'service', color: '#86BC25' },
-    { id: 'pwc', name: 'PwC', type: 'Service Based', category: 'service', color: '#D93954' },
-    { id: 'ey', name: 'EY', type: 'Service Based', category: 'service', color: '#FFE600' },
-    { id: 'ltimindtree', name: 'LTIMindtree', type: 'Service Based', category: 'service', color: '#8B4513' },
-    { id: 'techm', name: 'Tech Mahindra', type: 'Service Based', category: 'service', color: '#ED1C24' }
-];
-
-// Initialize App
-function startJourney() {
-    document.querySelector('.hero').style.display = 'none';
-    document.getElementById('app').classList.remove('hidden');
-    initializeStep1();
-}
-
-function goHome() {
-    document.getElementById('app').classList.add('hidden');
-    document.getElementById('dashboard').classList.add('hidden');
-    document.querySelector('.hero').style.display = 'flex';
-    
-    // Hide all step sections
-    document.querySelectorAll('.step-section').forEach(section => {
-        section.classList.remove('active');
-    });
-    
-    // Don't reset app state - preserve user's progress
-    // resetApp();
-}
-
-function resetApp() {
-    appState.currentStep = 0;
-    appState.selectedRole = null;
-    appState.selectedCompanies = [];
-    appState.assessmentData = null;
-    appState.timeline = null;
-    appState.progress = 0;
-    appState.streak = 0;
-    appState.skillProgress = {};
-}
-
-// Step Navigation
-function nextStep(step) {
-    document.querySelectorAll('.step-section').forEach(section => {
-        section.classList.remove('active');
-    });
-    document.getElementById(`step-${step}`).classList.add('active');
-    appState.currentStep = step;
-    window.scrollTo(0, 0);
-    
-    // Initialize step-specific content
-    if (step === 2) initializeStep2();
-    if (step === 3) initializeStep3();
-}
-
-function prevStep(step) {
-    nextStep(step);
-}
-
-// Step 1: Role Selection
-function initializeStep1() {
-    const roleGrid = document.getElementById('roleGrid');
-    roleGrid.innerHTML = '';
-    
-    jobRoles.forEach(role => {
-        const roleCard = document.createElement('div');
-        roleCard.className = 'role-card';
-        roleCard.dataset.category = role.category;
-        roleCard.dataset.roleId = role.id;
-        roleCard.innerHTML = `
-            <i class="fas ${role.icon}"></i>
-            <h3>${role.name}</h3>
-            <p>${role.description}</p>
-        `;
-        roleCard.onclick = () => selectRole(role.id);
-        roleGrid.appendChild(roleCard);
-    });
-}
-
-function selectRole(roleId) {
-    appState.selectedRole = roleId;
-    document.querySelectorAll('.role-card').forEach(card => {
-        card.classList.remove('selected');
-    });
-    document.querySelector(`[data-role-id="${roleId}"]`).classList.add('selected');
-    document.getElementById('roleNextBtn').disabled = false;
-}
-
-function filterRoles() {
-    const searchTerm = document.getElementById('roleSearch').value.toLowerCase();
-    document.querySelectorAll('.role-card').forEach(card => {
-        const title = card.querySelector('h3').textContent.toLowerCase();
-        const description = card.querySelector('p').textContent.toLowerCase();
-        if (title.includes(searchTerm) || description.includes(searchTerm)) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
-        }
-    });
-}
-
-function filterByCategory(category) {
-    document.querySelectorAll('.category-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    event.target.classList.add('active');
-    
-    document.querySelectorAll('.role-card').forEach(card => {
-        if (category === 'all' || card.dataset.category === category) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
-        }
-    });
-}
-
-// Step 2: Company Selection
-function initializeStep2() {
-    const companyGrid = document.getElementById('companyGrid');
-    companyGrid.innerHTML = '';
-    
-    companies.forEach(company => {
-        const companyCard = document.createElement('div');
-        companyCard.className = 'company-card';
-        companyCard.dataset.companyId = company.id;
-        companyCard.dataset.category = company.category;
-        companyCard.innerHTML = `
-            <div class="company-logo" style="background: ${company.color}">
-                ${company.name.charAt(0)}
-            </div>
-            <h4>${company.name}</h4>
-            <span class="company-type">${company.type}</span>
-        `;
-        companyCard.onclick = () => toggleCompany(company.id);
-        companyGrid.appendChild(companyCard);
-    });
-}
-
-function toggleCompany(companyId) {
-    const card = document.querySelector(`[data-company-id="${companyId}"]`);
-    const index = appState.selectedCompanies.indexOf(companyId);
-    
-    if (index > -1) {
-        appState.selectedCompanies.splice(index, 1);
-        card.classList.remove('selected');
-    } else {
-        appState.selectedCompanies.push(companyId);
-        card.classList.add('selected');
-    }
-    
-    document.getElementById('selectedCount').textContent = appState.selectedCompanies.length;
-    document.getElementById('companyNextBtn').disabled = appState.selectedCompanies.length < 3;
-}
-
-function filterCompanies() {
-    const searchTerm = document.getElementById('companySearch').value.toLowerCase();
-    document.querySelectorAll('.company-card').forEach(card => {
-        const name = card.querySelector('h4').textContent.toLowerCase();
-        if (name.includes(searchTerm)) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
-        }
-    });
-}
-
-function filterCompanyByType(category) {
-    document.querySelectorAll('.company-card').forEach(card => {
-        if (category === 'all' || card.dataset.category === category) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
-        }
-    });
-}
-
-// Step 3: Initialize Quiz automatically
-function initializeStep3() {
-    initializeQuiz();
-}
-
-// Step 4: Timeline Selection
-function selectTimeline(timeline) {
-    appState.timeline = timeline;
-    document.querySelectorAll('.timeline-card').forEach(card => {
-        card.classList.remove('selected');
-    });
-    event.target.closest('.timeline-card').classList.add('selected');
-    
-    document.getElementById('timelineNextBtn').disabled = false;
-}
-
-// Save and Continue
-function saveRoadmap() {
-    const roadmapData = {
-        ...appState,
-        savedDate: new Date().toISOString()
+// Generate role-specific questions
+function generateRoleSpecificQuestions(roleId) {
+    const questionTemplates = {
+        // Frontend Development
+        'frontend-dev': [
+            { question: 'How comfortable are you with HTML and CSS?', skill: 'HTML/CSS' },
+            { question: 'What is your proficiency level in JavaScript?', skill: 'JavaScript' },
+            { question: 'Have you worked with React?', skill: 'React' },
+            { question: 'How familiar are you with responsive design?', skill: 'Responsive Design' },
+            { question: 'Experience with version control (Git)?', skill: 'Git' },
+            { question: 'Knowledge of web accessibility standards?', skill: 'Accessibility' },
+            { question: 'Familiarity with CSS preprocessors (SASS/LESS)?', skill: 'CSS Preprocessors' },
+            { question: 'Understanding of browser DevTools?', skill: 'Browser DevTools' },
+            { question: 'Experience with REST APIs?', skill: 'REST APIs' },
+            { question: 'Knowledge of webpack/build tools?', skill: 'Build Tools' }
+        ],
+        
+        // Backend Development
+        'backend-dev': [
+            { question: 'How comfortable are you with server-side programming?', skill: 'Server Programming' },
+            { question: 'What is your proficiency in Node.js or Python?', skill: 'Node.js/Python' },
+            { question: 'Experience with SQL databases?', skill: 'SQL' },
+            { question: 'How familiar are you with NoSQL databases?', skill: 'MongoDB' },
+            { question: 'Understanding of REST API design?', skill: 'REST APIs' },
+            { question: 'Knowledge of authentication & authorization?', skill: 'Security' },
+            { question: 'Experience with server deployment?', skill: 'Deployment' },
+            { question: 'Familiarity with microservices architecture?', skill: 'Microservices' },
+            { question: 'Understanding of caching strategies?', skill: 'Caching' },
+            { question: 'Experience with message queues?', skill: 'Message Queues' }
+        ],
+        
+        // Full Stack
+        'fullstack-dev': [
+            { question: 'How comfortable are you with frontend development?', skill: 'Frontend Development' },
+            { question: 'What is your proficiency in backend development?', skill: 'Backend Development' },
+            { question: 'Experience with JavaScript frameworks (React/Vue/Angular)?', skill: 'JavaScript Frameworks' },
+            { question: 'How familiar are you with Node.js?', skill: 'Node.js' },
+            { question: 'Understanding of databases (SQL & NoSQL)?', skill: 'Databases' },
+            { question: 'Knowledge of REST APIs?', skill: 'REST APIs' },
+            { question: 'Experience with Git version control?', skill: 'Git' },
+            { question: 'Familiarity with deployment & hosting?', skill: 'Deployment' },
+            { question: 'Understanding of state management?', skill: 'State Management' },
+            { question: 'Experience with testing frameworks?', skill: 'Testing' }
+        ],
+        
+        // Data Science
+        'data-scientist': [
+            { question: 'How comfortable are you with Python?', skill: 'Python' },
+            { question: 'What is your proficiency in statistics?', skill: 'Statistics' },
+            { question: 'Experience with machine learning algorithms?', skill: 'Machine Learning' },
+            { question: 'How familiar are you with pandas & NumPy?', skill: 'Pandas/NumPy' },
+            { question: 'Understanding of data visualization (Matplotlib/Seaborn)?', skill: 'Data Visualization' },
+            { question: 'Knowledge of SQL for data querying?', skill: 'SQL' },
+            { question: 'Experience with Jupyter Notebooks?', skill: 'Jupyter' },
+            { question: 'Familiarity with scikit-learn?', skill: 'Scikit-learn' },
+            { question: 'Understanding of feature engineering?', skill: 'Feature Engineering' },
+            { question: 'Experience with model evaluation metrics?', skill: 'Model Evaluation' }
+        ],
+        
+        // Data Analyst
+        'data-analyst': [
+            { question: 'How comfortable are you with SQL?', skill: 'SQL' },
+            { question: 'What is your proficiency in Excel?', skill: 'Excel' },
+            { question: 'Experience with data visualization tools (Tableau/Power BI)?', skill: 'Tableau/Power BI' },
+            { question: 'How familiar are you with Python/R for data analysis?', skill: 'Python/R' },
+            { question: 'Understanding of statistical analysis?', skill: 'Statistics' },
+            { question: 'Knowledge of data cleaning techniques?', skill: 'Data Cleaning' },
+            { question: 'Experience with dashboard creation?', skill: 'Dashboards' },
+            { question: 'Familiarity with business intelligence concepts?', skill: 'Business Intelligence' },
+            { question: 'Understanding of A/B testing?', skill: 'A/B Testing' },
+            { question: 'Experience with reporting tools?', skill: 'Reporting' }
+        ],
+        
+        // ML Engineer
+        'ml-engineer': [
+            { question: 'How comfortable are you with Python?', skill: 'Python' },
+            { question: 'What is your proficiency in machine learning?', skill: 'Machine Learning' },
+            { question: 'Experience with TensorFlow or PyTorch?', skill: 'TensorFlow/PyTorch' },
+            { question: 'How familiar are you with model deployment?', skill: 'MLOps' },
+            { question: 'Understanding of neural networks?', skill: 'Deep Learning' },
+            { question: 'Knowledge of scikit-learn?', skill: 'Scikit-learn' },
+            { question: 'Experience with data preprocessing?', skill: 'Data Preprocessing' },
+            { question: 'Familiarity with cloud platforms (AWS/GCP/Azure)?', skill: 'Cloud Platforms' },
+            { question: 'Understanding of model optimization?', skill: 'Model Optimization' },
+            { question: 'Experience with Docker/Kubernetes?', skill: 'Docker/Kubernetes' }
+        ],
+        
+        // UI/UX Designer
+        'ui-ux-designer': [
+            { question: 'How comfortable are you with Figma?', skill: 'Figma' },
+            { question: 'What is your proficiency in user research?', skill: 'User Research' },
+            { question: 'Experience with wireframing & prototyping?', skill: 'Prototyping' },
+            { question: 'How familiar are you with design systems?', skill: 'Design Systems' },
+            { question: 'Understanding of color theory & typography?', skill: 'Visual Design' },
+            { question: 'Knowledge of usability testing?', skill: 'Usability Testing' },
+            { question: 'Experience with Adobe Creative Suite?', skill: 'Adobe Suite' },
+            { question: 'Familiarity with interaction design?', skill: 'Interaction Design' },
+            { question: 'Understanding of accessibility guidelines?', skill: 'Accessibility' },
+            { question: 'Experience with user personas & journeys?', skill: 'UX Strategy' }
+        ],
+        
+        // Product Designer
+        'product-designer': [
+            { question: 'How comfortable are you with design thinking?', skill: 'Design Thinking' },
+            { question: 'What is your proficiency in user research?', skill: 'User Research' },
+            { question: 'Experience with Figma or Sketch?', skill: 'Design Tools' },
+            { question: 'How familiar are you with prototyping?', skill: 'Prototyping' },
+            { question: 'Understanding of product strategy?', skill: 'Product Strategy' },
+            { question: 'Knowledge of agile methodologies?', skill: 'Agile' },
+            { question: 'Experience with A/B testing?', skill: 'A/B Testing' },
+            { question: 'Familiarity with design systems?', skill: 'Design Systems' },
+            { question: 'Understanding of metrics & analytics?', skill: 'Analytics' },
+            { question: 'Experience with stakeholder management?', skill: 'Communication' }
+        ],
+        
+        // DevOps Engineer
+        'devops-engineer': [
+            { question: 'How comfortable are you with Docker?', skill: 'Docker' },
+            { question: 'What is your proficiency in Kubernetes?', skill: 'Kubernetes' },
+            { question: 'Experience with CI/CD pipelines?', skill: 'CI/CD' },
+            { question: 'How familiar are you with AWS/Azure/GCP?', skill: 'Cloud Platforms' },
+            { question: 'Understanding of infrastructure as code?', skill: 'Terraform' },
+            { question: 'Knowledge of Linux system administration?', skill: 'Linux' },
+            { question: 'Experience with monitoring tools?', skill: 'Monitoring' },
+            { question: 'Familiarity with scripting (Bash/Python)?', skill: 'Scripting' },
+            { question: 'Understanding of networking concepts?', skill: 'Networking' },
+            { question: 'Experience with configuration management?', skill: 'Configuration Management' }
+        ],
+        
+        // QA Engineer
+        'qa-engineer': [
+            { question: 'How comfortable are you with manual testing?', skill: 'Manual Testing' },
+            { question: 'What is your proficiency in automation testing?', skill: 'Test Automation' },
+            { question: 'Experience with Selenium?', skill: 'Selenium' },
+            { question: 'How familiar are you with API testing?', skill: 'API Testing' },
+            { question: 'Understanding of test case design?', skill: 'Test Design' },
+            { question: 'Knowledge of bug tracking tools (JIRA)?', skill: 'Bug Tracking' },
+            { question: 'Experience with performance testing?', skill: 'Performance Testing' },
+            { question: 'Familiarity with test frameworks?', skill: 'Test Frameworks' },
+            { question: 'Understanding of CI/CD in testing?', skill: 'CI/CD' },
+            { question: 'Experience with mobile testing?', skill: 'Mobile Testing' }
+        ],
+        
+        // Mobile Developer
+        'mobile-dev': [
+            { question: 'How comfortable are you with React Native or Flutter?', skill: 'Mobile Frameworks' },
+            { question: 'What is your proficiency in iOS/Android development?', skill: 'Native Development' },
+            { question: 'Experience with mobile UI/UX design?', skill: 'Mobile UI/UX' },
+            { question: 'How familiar are you with REST APIs?', skill: 'REST APIs' },
+            { question: 'Understanding of mobile app lifecycle?', skill: 'App Lifecycle' },
+            { question: 'Knowledge of state management in mobile apps?', skill: 'State Management' },
+            { question: 'Experience with app store deployment?', skill: 'App Deployment' },
+            { question: 'Familiarity with push notifications?', skill: 'Push Notifications' },
+            { question: 'Understanding of mobile security?', skill: 'Mobile Security' },
+            { question: 'Experience with offline storage?', skill: 'Data Storage' }
+        ],
+        
+        // Cloud Architect
+        'cloud-architect': [
+            { question: 'How comfortable are you with AWS?', skill: 'AWS' },
+            { question: 'What is your proficiency in Azure or GCP?', skill: 'Azure/GCP' },
+            { question: 'Experience with cloud architecture design?', skill: 'Cloud Architecture' },
+            { question: 'How familiar are you with cloud security?', skill: 'Cloud Security' },
+            { question: 'Understanding of serverless computing?', skill: 'Serverless' },
+            { question: 'Knowledge of load balancing & auto-scaling?', skill: 'Scalability' },
+            { question: 'Experience with cloud migration?', skill: 'Cloud Migration' },
+            { question: 'Familiarity with cost optimization?', skill: 'Cost Management' },
+            { question: 'Understanding of cloud networking?', skill: 'Cloud Networking' },
+            { question: 'Experience with disaster recovery?', skill: 'Disaster Recovery' }
+        ]
     };
-    localStorage.setItem('placementRoadmap', JSON.stringify(roadmapData));
-    showToast('Roadmap saved successfully! 💾', 'success');
+    
+    return questionTemplates[roleId] || getDefaultQuestions();
 }
 
-function startLearning() {
-    // Hide roadmap section
-    document.querySelectorAll('.step-section').forEach(section => {
-        section.classList.remove('active');
-    });
-    
-    // Show dashboard
-    document.getElementById('dashboard').classList.remove('hidden');
-    initializeDashboard();
-    
-    window.scrollTo(0, 0);
-}
-
-function backToRoadmap() {
-    document.getElementById('dashboard').classList.add('hidden');
-    document.getElementById('step-5').classList.add('active');
-    window.scrollTo(0, 0);
-}
-
-// Dashboard Functions (UPDATED with Skill Progress Counters)
-function initializeDashboard() {
-    // Initialize progress at 0%
-    appState.progress = parseInt(localStorage.getItem('userProgress')) || 0;
-    appState.streak = parseInt(localStorage.getItem('userStreak')) || 0;
-    
-    // Initialize skill progress from localStorage or set to 0
-    if (!appState.skillProgress || Object.keys(appState.skillProgress).length === 0) {
-        appState.skillProgress = {};
-        const allSkills = [
-            ...appState.userProfile.weaknesses,
-            ...appState.userProfile.areasToImprove
-        ];
-        allSkills.forEach(skill => {
-            const saved = localStorage.getItem(`skill_${skill}`);
-            appState.skillProgress[skill] = saved ? parseInt(saved) : 0;
-        });
-    }
-    
-    updateProgressDisplay();
-    updateStreakDisplay();
-    
-    // Set current focus
-    const skillsToLearn = [...appState.userProfile.weaknesses, ...appState.userProfile.areasToImprove];
-    document.getElementById('currentFocus').innerHTML = skillsToLearn.length > 0 ? `
-        <div class="focus-item">
-            <h4><i class="fas fa-bullseye"></i> ${skillsToLearn[0]}</h4>
-            <p>Focus on mastering this skill first</p>
-        </div>
-        ${skillsToLearn[1] ? `
-        <div class="focus-item">
-            <h4><i class="fas fa-layer-group"></i> ${skillsToLearn[1]}</h4>
-            <p>Next in your learning queue</p>
-        </div>
-        ` : ''}
-    ` : '<div class="empty-state"><i class="fas fa-check-circle"></i><p>No skills to focus on. Great job!</p></div>';
-    
-    // Set time remaining with watch icon
-    let daysRemaining = 90;
-    switch (appState.timeline) {
-        case '1-month': daysRemaining = 30; break;
-        case '3-months': daysRemaining = 90; break;
-        case '6-months': daysRemaining = 180; break;
-    }
-    
-    document.getElementById('timeRemaining').innerHTML = `
-        <i class="fas fa-clock"></i>
-        <span class="days-count">${daysRemaining}</span>
-        <span class="label">days until placement season</span>
-    `;
-    
-    // Populate skills progress with counters
-    populateSkillsProgress();
-}
-
-function updateProgressDisplay() {
-    document.getElementById('overallProgress').textContent = appState.progress;
-    
-    // Update progress circle
-    const circle = document.getElementById('progressCircle');
-    if (circle) {
-        const circumference = 2 * Math.PI * 40;
-        const offset = circumference - (appState.progress / 100) * circumference;
-        circle.style.strokeDashoffset = offset;
-    }
-}
-
-function updateStreakDisplay() {
-    document.getElementById('streakDays').textContent = appState.streak;
-}
-
-function adjustProgress(amount) {
-    appState.progress = Math.max(0, Math.min(100, appState.progress + amount));
-    updateProgressDisplay();
-    
-    // Save to localStorage
-    localStorage.setItem('userProgress', appState.progress);
-    
-    // Show feedback
-    if (amount > 0) {
-        showToast('Progress increased! 🎉', 'success');
-    } else if (amount < 0) {
-        showToast('Progress decreased', 'info');
-    }
-}
-
-function adjustStreak(amount) {
-    appState.streak = Math.max(0, appState.streak + amount);
-    updateStreakDisplay();
-    
-    // Save to localStorage
-    localStorage.setItem('userStreak', appState.streak);
-    
-    // Show feedback
-    if (amount > 0) {
-        showToast('Streak updated! 🔥', 'success');
-    } else if (amount < 0) {
-        showToast('Streak decreased', 'info');
-    }
-}
-
-function populateSkillsProgress() {
-    const skillsProgressList = document.getElementById('skillsProgressList');
-    const allSkills = [
-        ...appState.userProfile.weaknesses,
-        ...appState.userProfile.areasToImprove
+function getDefaultQuestions() {
+    return [
+        { question: 'How would you rate your problem-solving skills?', skill: 'Problem Solving' },
+        { question: 'What is your proficiency in programming?', skill: 'Programming' },
+        { question: 'Experience with data structures and algorithms?', skill: 'DSA' },
+        { question: 'How familiar are you with version control?', skill: 'Git' },
+        { question: 'Understanding of software development lifecycle?', skill: 'SDLC' },
+        { question: 'Knowledge of debugging techniques?', skill: 'Debugging' },
+        { question: 'Experience with documentation?', skill: 'Documentation' },
+        { question: 'Familiarity with agile methodologies?', skill: 'Agile' },
+        { question: 'Understanding of code review practices?', skill: 'Code Review' },
+        { question: 'Experience with team collaboration?', skill: 'Teamwork' }
     ];
+}
+
+function initializeQuiz() {
+    currentQuestion = 0;
+    quizAnswers = [];
     
-    if (allSkills.length === 0) {
-        skillsProgressList.innerHTML = '<div class="empty-state"><i class="fas fa-check-circle"></i><p>No skills to track. You\'re all set!</p></div>';
+    // Generate role-specific questions
+    const roleQuestions = generateRoleSpecificQuestions(appState.selectedRole);
+    
+    quizQuestions = roleQuestions.map(q => ({
+        question: q.question,
+        options: ['Expert', 'Intermediate', 'Beginner', 'No experience'],
+        skill: q.skill
+    }));
+    
+    document.getElementById('totalQuestions').textContent = quizQuestions.length;
+    loadQuestion();
+}
+
+function loadQuestion() {
+    const question = quizQuestions[currentQuestion];
+    document.getElementById('questionNumber').textContent = currentQuestion + 1;
+    document.getElementById('questionText').textContent = question.question;
+    
+    const optionsHtml = question.options.map((option, index) => `
+        <div class="answer-option" onclick="selectAnswer(${index})">
+            ${option}
+        </div>
+    `).join('');
+    
+    document.getElementById('answerOptions').innerHTML = optionsHtml;
+    
+    // Restore previous answer if exists
+    if (quizAnswers[currentQuestion] !== undefined) {
+        document.querySelectorAll('.answer-option')[quizAnswers[currentQuestion]].classList.add('selected');
+    }
+    
+    // Update progress
+    const progress = ((currentQuestion + 1) / quizQuestions.length) * 100;
+    document.getElementById('quizProgress').style.width = progress + '%';
+    
+    // Update button states
+    document.getElementById('prevQuestionBtn').disabled = currentQuestion === 0;
+    document.getElementById('nextQuestionBtn').innerHTML = 
+        currentQuestion === quizQuestions.length - 1 
+            ? 'Finish <i class="fas fa-check"></i>' 
+            : 'Next <i class="fas fa-arrow-right"></i>';
+}
+
+function selectAnswer(optionIndex) {
+    quizAnswers[currentQuestion] = optionIndex;
+    document.querySelectorAll('.answer-option').forEach((option, index) => {
+        option.classList.remove('selected');
+        if (index === optionIndex) {
+            option.classList.add('selected');
+        }
+    });
+}
+
+function nextQuestion() {
+    if (quizAnswers[currentQuestion] === undefined) {
+        alert('Please select an answer');
         return;
     }
     
-    skillsProgressList.innerHTML = allSkills.map(skill => {
-        const progress = appState.skillProgress[skill] || 0;
-        return `
-            <div class="skill-progress-item" data-skill="${skill}">
-                <div class="skill-progress-header">
-                    <span class="skill-progress-name"><i class="fas fa-code"></i> ${skill}</span>
-                    <span class="skill-progress-percent">${progress}%</span>
-                </div>
-                <div class="skill-progress-bar">
-                    <div class="skill-progress-fill" style="width: ${progress}%"></div>
-                </div>
-                <div class="skill-progress-controls">
-                    <button class="skill-control-btn minus" onclick="adjustSkillProgress('${skill}', -10)" title="Decrease by 10%">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                    <span>Adjust Progress</span>
-                    <button class="skill-control-btn plus" onclick="adjustSkillProgress('${skill}', 10)" title="Increase by 10%">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-    }).join('');
+    if (currentQuestion < quizQuestions.length - 1) {
+        currentQuestion++;
+        loadQuestion();
+    } else {
+        finishQuiz();
+    }
 }
 
-// NEW FUNCTION: Adjust individual skill progress
-function adjustSkillProgress(skill, amount) {
-    if (!appState.skillProgress) {
-        appState.skillProgress = {};
+function previousQuestion() {
+    if (currentQuestion > 0) {
+        currentQuestion--;
+        loadQuestion();
     }
+}
+
+function finishQuiz() {
+    // Process quiz results with CORRECT SCORE MAPPING
+    // Options: ['Expert', 'Intermediate', 'Beginner', 'No experience']
+    // Index:   [   0    ,      1        ,     2     ,       3        ]
     
-    // Get current progress or default to 0
-    const currentProgress = appState.skillProgress[skill] || 0;
-    
-    // Calculate new progress (0-100)
-    const newProgress = Math.max(0, Math.min(100, currentProgress + amount));
-    
-    // Update state
-    appState.skillProgress[skill] = newProgress;
-    
-    // Save to localStorage
-    localStorage.setItem(`skill_${skill}`, newProgress);
-    
-    // Update UI
-    const skillItem = document.querySelector(`[data-skill="${skill}"]`);
-    if (skillItem) {
-        const percentSpan = skillItem.querySelector('.skill-progress-percent');
-        const progressFill = skillItem.querySelector('.skill-progress-fill');
+    const skills = quizQuestions.map((q, index) => {
+        const selectedOption = quizAnswers[index];
+        const level = q.options[selectedOption];
         
-        percentSpan.textContent = `${newProgress}%`;
-        progressFill.style.width = `${newProgress}%`;
-        
-        // Add animation
-        progressFill.classList.add('animate');
-        setTimeout(() => progressFill.classList.remove('animate'), 500);
-    }
+        return {
+            name: q.skill,
+            level: level,
+            selectedIndex: selectedOption
+        };
+    });
     
-    // Show feedback
-    if (amount > 0) {
-        showToast(`${skill} progress increased! 📈`, 'success');
-    } else if (amount < 0) {
-        showToast(`${skill} progress decreased`, 'info');
-    }
+    appState.assessmentData = { skills };
+    analyzeSkillGap(skills);
     
-    // Update overall progress (average of all skills)
-    updateOverallProgress();
+    // Go to Step 4 (Timeline)
+    nextStep(4);
 }
 
-// NEW FUNCTION: Calculate overall progress from individual skills
-function updateOverallProgress() {
-    const skills = Object.keys(appState.skillProgress);
-    if (skills.length === 0) return;
+// CORRECTED Skill Gap Analysis
+function analyzeSkillGap(skills) {
+    // Reset arrays
+    appState.userProfile.strengths = [];
+    appState.userProfile.areasToImprove = [];
+    appState.userProfile.weaknesses = [];
     
-    const total = skills.reduce((sum, skill) => sum + (appState.skillProgress[skill] || 0), 0);
-    const average = Math.round(total / skills.length);
+    skills.forEach(skill => {
+        // selectedIndex: 0=Expert, 1=Intermediate, 2=Beginner, 3=No experience
+        switch(skill.selectedIndex) {
+            case 0: // Expert → Strengths
+                appState.userProfile.strengths.push(skill.name);
+                break;
+            case 1: // Intermediate → Areas to Improve
+                appState.userProfile.areasToImprove.push(skill.name);
+                break;
+            case 2: // Beginner → Weaknesses
+            case 3: // No experience → Weaknesses
+                appState.userProfile.weaknesses.push(skill.name);
+                break;
+        }
+    });
     
-    appState.progress = average;
-    updateProgressDisplay();
-    localStorage.setItem('userProgress', appState.progress);
+    console.log('Skill Gap Analysis:');
+    console.log('Strengths (Expert):', appState.userProfile.strengths);
+    console.log('Areas to Improve (Intermediate):', appState.userProfile.areasToImprove);
+    console.log('Weaknesses (Beginner/No Experience):', appState.userProfile.weaknesses);
 }
-
-// NEW FUNCTION: Simple toast notifications
-function showToast(message, type = 'info') {
-    // Remove existing toast if any
-    const existingToast = document.querySelector('.toast');
-    if (existingToast) {
-        existingToast.remove();
-    }
-    
-    // Create toast
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-    
-    // Style toast
-    const bgColor = type === 'success' ? '#10b981' : type === 'info' ? '#6366f1' : '#f59e0b';
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: ${bgColor};
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 8px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        z-index: 10000;
-        animation: slideIn 0.3s ease;
-        font-weight: 500;
-        max-width: 300px;
-    `;
-    
-    document.body.appendChild(toast);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-        toast.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-// Add toast animations to CSS
-const toastStyles = `
-@keyframes slideIn {
-    from {
-        transform: translateX(400px);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideOut {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(400px);
-        opacity: 0;
-    }
-}
-`;
-
-// Inject toast styles
-if (!document.getElementById('toast-styles')) {
-    const style = document.createElement('style');
-    style.id = 'toast-styles';
-    style.textContent = toastStyles;
-    document.head.appendChild(style);
-}
-
-// Load saved progress on page load
-window.addEventListener('DOMContentLoaded', () => {
-    // Load saved roadmap if exists
-    const saved = localStorage.getItem('placementRoadmap');
-    if (saved) {
-        const savedData = JSON.parse(saved);
-        console.log('Saved roadmap found:', savedData);
-    }
-});
