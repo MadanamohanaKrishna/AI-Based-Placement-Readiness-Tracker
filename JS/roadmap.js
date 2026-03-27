@@ -1,418 +1,301 @@
-// Roadmap Generation
-function generateRoadmap() {
-    // Show loading overlay
-    document.getElementById('loadingOverlay').classList.remove('hidden');
-    
-    // Simulate AI processing
-    setTimeout(() => {
-        createRoadmap();
-        document.getElementById('loadingOverlay').classList.add('hidden');
-        nextStep(5); // Go to roadmap section
-    }, 3000);
-}
-
-function createRoadmap() {
-    const roleData = jobRoles.find(r => r.id === appState.selectedRole);
-    if (!roleData) return;
-    
-    // Get skill gap data
-    const { strengths, weaknesses, missingSkills } = appState.userProfile;
-    
-    // Combine weaknesses and missing skills as skills to learn
-    const skillsToLearn = [...weaknesses, ...missingSkills];
-    
-    // Generate roadmap based on timeline and hours per day
-    const roadmap = generateLearningPath(skillsToLearn, appState.timeline, appState.hoursPerDay);
-    
-    appState.roadmap = roadmap;
-    
-    // Populate the roadmap UI
-    populateSkillGapAnalysis(strengths, weaknesses, missingSkills);
-    populateTimelineView(roadmap);
-    populateTopicsView(roadmap);
-    populateWeeklySchedule(roadmap);
-    populateResources(roadmap);
-}
-
-// Generate Learning Path
-function generateLearningPath(skillsToLearn, timeline, hoursPerDay) {
-    // Convert timeline to weeks
-    let totalWeeks;
-    switch (timeline) {
-        case '1-month': totalWeeks = 4; break;
-        case '3-months': totalWeeks = 12; break;
-        case '6-months': totalWeeks = 24; break;
-        default: 
-            // For custom timeline, calculate from target date
-            const today = new Date();
-            const targetDate = new Date(document.getElementById('targetDate').value);
-            const diffTime = Math.abs(targetDate - today);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            totalWeeks = Math.floor(diffDays / 7);
-            break;
-    }
-    
-    // If no weeks, default to 12 weeks
-    if (!totalWeeks || totalWeeks < 1) totalWeeks = 12;
-    
-    // Calculate total hours available
-    const totalHours = totalWeeks * 7 * hoursPerDay;
-    
-    // Map skills to learning modules with estimated hours
-    const learningModules = [];
-    
-    // Define skill difficulty and estimated hours
-    const skillHours = {
-        // Core web dev
-        'HTML': 10,
-        'CSS': 15,
-        'JavaScript': 40,
-        'React': 50,
-        'Vue': 40,
-        'Angular': 50,
-        'Node.js': 40,
-        'Express': 30,
-        'Python': 35,
-        'Django': 40,
-        'Flask': 30,
-        'SQL': 25,
-        'MongoDB': 30,
-        'REST APIs': 25,
-        'GraphQL': 20,
-        'Git': 15,
-        'Docker': 25,
-        'Kubernetes': 30,
-        'AWS': 40,
-        'Azure': 40,
-        'GCP': 40,
-        'CI/CD': 20,
-        
-        // Data science
-        'Machine Learning': 60,
-        'Statistics': 30,
-        'Data Visualization': 25,
-        'Tableau': 20,
-        'Power BI': 20,
-        'Pandas': 30,
-        'NumPy': 20,
-        'Scikit-learn': 30,
-        'TensorFlow': 40,
-        'PyTorch': 40,
-        'Data Cleaning': 20,
-        
-        // Design
-        'Figma': 25,
-        'Adobe XD': 25,
-        'Sketch': 25,
-        'User Research': 20,
-        'Prototyping': 20,
-        'UI Design': 30,
-        'UX Design': 30,
-        
-        // General
-        'Algorithms': 40,
-        'Data Structures': 35,
-        'System Design': 30,
-        'Problem Solving': 30,
-        'Communication': 15,
-        'Teamwork': 10,
-        'Time Management': 10
-    };
-    
-    // Create modules for each skill to learn
-    skillsToLearn.forEach(skill => {
-        const hours = skillHours[skill] || 20; // Default 20 hours
-        learningModules.push({
-            id: `module-${skill.replace(/\s+/g, '-').toLowerCase()}`,
-            title: skill,
-            description: `Master ${skill} fundamentals and advanced concepts`,
-            hoursRequired: hours,
-            difficulty: hours > 30 ? 'Advanced' : hours > 15 ? 'Intermediate' : 'Beginner',
-            subtopics: generateSubtopicsForSkill(skill),
-            resources: getResourcesForSkill(skill)
-        });
-    });
-    
-    // Sort modules by difficulty (beginner first)
-    learningModules.sort((a, b) => {
-        const difficultyOrder = { 'Beginner': 1, 'Intermediate': 2, 'Advanced': 3 };
-        return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
-    });
-    
-    // Distribute modules across weeks
-    const roadmap = {
-        totalWeeks,
-        hoursPerDay,
-        modules: learningModules,
-        weeklyPlan: []
-    };
-    
-    let currentWeek = 1;
-    let remainingHours = totalHours;
-    let moduleIndex = 0;
-    
-    while (currentWeek <= totalWeeks && moduleIndex < learningModules.length) {
-        const weekModules = [];
-        let weekHours = 0;
-        
-        while (
-            moduleIndex < learningModules.length && 
-            weekHours + learningModules[moduleIndex].hoursRequired <= remainingHours &&
-            weekModules.length < 3 // Max 3 modules per week
-        ) {
-            const module = learningModules[moduleIndex];
-            weekModules.push({
-                ...module,
-                week: currentWeek,
-                startDay: (currentWeek - 1) * 7 + 1,
-                endDay: (currentWeek - 1) * 7 + Math.ceil(module.hoursRequired / hoursPerDay)
-            });
-            
-            weekHours += module.hoursRequired;
-            remainingHours -= module.hoursRequired;
-            moduleIndex++;
+// YouTube Resource Database
+const youtubeResources = {
+    // Web Development
+    'HTML/CSS': [
+        {
+            id: 'html-css-1',
+            title: 'HTML & CSS Full Course - Beginner to Pro',
+            description: 'Complete HTML5 and CSS3 course for beginners. Learn web development from scratch.',
+            duration: '6h 30m',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=mU6anWqZJcc'
+        },
+        {
+            id: 'html-css-2',
+            title: 'CSS Flexbox & Grid - Complete Guide',
+            description: 'Master modern CSS layouts with Flexbox and CSS Grid.',
+            duration: '2h 15m',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=JJSoEo8JSnc'
         }
-        
-        roadmap.weeklyPlan.push({
-            week: currentWeek,
-            modules: weekModules,
-            totalHours: weekHours
-        });
-        
-        currentWeek++;
+    ],
+    
+    'JavaScript': [
+        {
+            id: 'js-1',
+            title: 'JavaScript Full Course for Beginners',
+            description: 'Learn JavaScript from scratch. Covers ES6+ features, DOM, async programming.',
+            duration: '8h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=PkZNo7MFNFg'
+        },
+        {
+            id: 'js-2',
+            title: 'JavaScript ES6+ Features',
+            description: 'Modern JavaScript features: arrow functions, destructuring, promises, async/await.',
+            duration: '1h 30m',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=NCwa_xi0Uuc'
+        }
+    ],
+    
+    'React': [
+        {
+            id: 'react-1',
+            title: 'React JS Full Course for Beginners',
+            description: 'Complete React tutorial covering components, hooks, context, and routing.',
+            duration: '12h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=bMknfKXIFA8'
+        },
+        {
+            id: 'react-2',
+            title: 'React Hooks Tutorial',
+            description: 'Master React Hooks: useState, useEffect, useContext, useReducer, custom hooks.',
+            duration: '2h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=O6P86uwfdR0'
+        }
+    ],
+    
+    'Node.js': [
+        {
+            id: 'node-1',
+            title: 'Node.js Full Course for Beginners',
+            description: 'Learn Node.js from scratch. Build REST APIs with Express.js.',
+            duration: '7h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=Oe421EPjeBE'
+        },
+        {
+            id: 'node-2',
+            title: 'Node.js & Express.js Crash Course',
+            description: 'Build a complete REST API with Node.js and Express.',
+            duration: '2h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=L72fhGm1tfE'
+        }
+    ],
+    
+    // Databases
+    'SQL': [
+        {
+            id: 'sql-1',
+            title: 'SQL Tutorial - Full Database Course',
+            description: 'Learn SQL from basics to advanced. Covers queries, joins, indexes.',
+            duration: '4h 20m',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=HXV3zeQKqGY'
+        }
+    ],
+    
+    'MongoDB': [
+        {
+            id: 'mongo-1',
+            title: 'MongoDB Crash Course',
+            description: 'Learn MongoDB NoSQL database. CRUD operations, aggregation, indexing.',
+            duration: '1h 30m',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=-56x56UppqQ'
+        }
+    ],
+    
+    // Python & Data Science
+    'Python': [
+        {
+            id: 'python-1',
+            title: 'Python Full Course for Beginners',
+            description: 'Complete Python tutorial. Learn programming fundamentals.',
+            duration: '6h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=rfscVS0vtbw'
+        },
+        {
+            id: 'python-2',
+            title: 'Python for Data Science',
+            description: 'Python for data analysis with NumPy, Pandas, and Matplotlib.',
+            duration: '4h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=LHBE6Q9XlzI'
+        }
+    ],
+    
+    'Machine Learning': [
+        {
+            id: 'ml-1',
+            title: 'Machine Learning Course for Beginners',
+            description: 'Learn ML algorithms: regression, classification, clustering.',
+            duration: '10h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=i_LwzRVP7bg'
+        },
+        {
+            id: 'ml-2',
+            title: 'Machine Learning with Python',
+            description: 'Practical ML with scikit-learn. Build real projects.',
+            duration: '6h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=7eh4d6sabA0'
+        }
+    ],
+    
+    'Deep Learning': [
+        {
+            id: 'dl-1',
+            title: 'Deep Learning Full Course',
+            description: 'Neural networks, CNNs, RNNs, and more with TensorFlow.',
+            duration: '7h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=VyWAvY2CF9c'
+        }
+    ],
+    
+    'TensorFlow/PyTorch': [
+        {
+            id: 'tf-1',
+            title: 'TensorFlow 2.0 Complete Course',
+            description: 'Learn TensorFlow from scratch. Build neural networks.',
+            duration: '7h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=tPYj3fFJGjk'
+        },
+        {
+            id: 'pytorch-1',
+            title: 'PyTorch for Deep Learning',
+            description: 'Complete PyTorch tutorial for deep learning.',
+            duration: '5h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=GIsg-ZUy0MY'
+        }
+    ],
+    
+    // DevOps
+    'Docker': [
+        {
+            id: 'docker-1',
+            title: 'Docker Tutorial for Beginners',
+            description: 'Learn Docker containerization from scratch.',
+            duration: '3h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=fqMOX6JJhGo'
+        }
+    ],
+    
+    'Kubernetes': [
+        {
+            id: 'k8s-1',
+            title: 'Kubernetes Course - Full Beginners Tutorial',
+            description: 'Learn Kubernetes orchestration step by step.',
+            duration: '4h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=X48VuDVv0do'
+        }
+    ],
+    
+    'Git': [
+        {
+            id: 'git-1',
+            title: 'Git & GitHub Crash Course',
+            description: 'Learn version control with Git and GitHub.',
+            duration: '1h 30m',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=RGOj5yH7evk'
+        }
+    ],
+    
+    'CI/CD': [
+        {
+            id: 'cicd-1',
+            title: 'CI/CD Pipeline Tutorial',
+            description: 'Build CI/CD pipelines with Jenkins, GitHub Actions.',
+            duration: '2h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=7PWdzOKLWGo'
+        }
+    ],
+    
+    'AWS': [
+        {
+            id: 'aws-1',
+            title: 'AWS Certified Cloud Practitioner',
+            description: 'Complete AWS fundamentals course.',
+            duration: '4h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=SOTamWNgDKc'
+        }
+    ],
+    
+    // Design
+    'Figma': [
+        {
+            id: 'figma-1',
+            title: 'Figma Tutorial for Beginners',
+            description: 'Learn Figma UI design from scratch.',
+            duration: '3h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=FTFaQWZBqQ8'
+        }
+    ],
+    
+    'User Research': [
+        {
+            id: 'ux-1',
+            title: 'UX Design Fundamentals',
+            description: 'Learn user research and UX design principles.',
+            duration: '2h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=uL2ZB7XXIgg'
+        }
+    ],
+    
+    // Testing
+    'Selenium': [
+        {
+            id: 'selenium-1',
+            title: 'Selenium Full Course',
+            description: 'Learn Selenium automation testing.',
+            duration: '9h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=j7VZsCCnptM'
+        }
+    ],
+    
+    // Default/Generic
+    'default': [
+        {
+            id: 'programming-1',
+            title: 'Computer Science Full Course',
+            description: 'Complete computer science fundamentals.',
+            duration: '8h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=8mAITcNt710'
+        },
+        {
+            id: 'dsa-1',
+            title: 'Data Structures & Algorithms',
+            description: 'Complete DSA course for coding interviews.',
+            duration: '6h',
+            rating: 5,
+            url: 'https://www.youtube.com/watch?v=RBSGKlAvoiM'
+        }
+    ]
+};
+
+// Get YouTube resources for a specific skill
+function getYouTubeResourcesForSkill(skill) {
+    // Try exact match first
+    if (youtubeResources[skill]) {
+        return youtubeResources[skill];
     }
     
-    return roadmap;
-}
-
-// Generate subtopics for a skill
-function generateSubtopicsForSkill(skill) {
-    const subtopicsMap = {
-        'HTML': ['Semantic HTML', 'Forms', 'Accessibility', 'SEO basics'],
-        'CSS': ['Layout (Flexbox, Grid)', 'Responsive Design', 'CSS Variables', 'Animations'],
-        'JavaScript': ['ES6+ Features', 'DOM Manipulation', 'Asynchronous JS', 'Error Handling'],
-        'React': ['Components & Props', 'State & Lifecycle', 'Hooks', 'Routing', 'State Management'],
-        'Node.js': ['Node Fundamentals', 'Express Framework', 'Middleware', 'REST APIs'],
-        'Python': ['Python Basics', 'Data Structures', 'File Handling', 'Libraries'],
-        'SQL': ['Basic Queries', 'Joins', 'Indexes', 'Database Design'],
-        'MongoDB': ['NoSQL Concepts', 'CRUD Operations', 'Mongoose', 'Aggregation'],
-        'Git': ['Basic Commands', 'Branching', 'Merging', 'GitHub'],
-        'Docker': ['Containers', 'Dockerfile', 'Images', 'Docker Compose'],
-        'Algorithms': ['Sorting', 'Searching', 'Recursion', 'Complexity Analysis'],
-        'Data Structures': ['Arrays', 'Linked Lists', 'Stacks & Queues', 'Trees', 'Hash Tables'],
-        'System Design': ['Load Balancing', 'Caching', 'Database Sharding', 'Microservices'],
-        'REST APIs': ['HTTP Methods', 'Status Codes', 'Authentication', 'Testing'],
-        'Machine Learning': ['Supervised Learning', 'Unsupervised Learning', 'Model Evaluation', 'Scikit-learn'],
-        'Figma': ['Interface Basics', 'Components', 'Auto Layout', 'Prototyping'],
-        'User Research': ['User Interviews', 'Surveys', 'Personas', 'User Journeys']
-    };
-    
-    return subtopicsMap[skill] || [`${skill} Fundamentals`, `${skill} Best Practices`];
-}
-
-// Populate Skill Gap Analysis
-function populateSkillGapAnalysis(strengths, weaknesses, missingSkills) {
-    // Strengths
-    const strengthsHtml = strengths.length > 0 
-        ? strengths.map(skill => `<span class="skill-tag strength">${skill}</span>`).join('')
-        : '<p>No strengths detected</p>';
-    document.getElementById('strengthsList').innerHTML = strengthsHtml;
-    
-    // Weaknesses
-    const weaknessesHtml = weaknesses.length > 0 
-        ? weaknesses.map(skill => `<span class="skill-tag weakness">${skill}</span>`).join('')
-        : '<p>No weaknesses detected</p>';
-    document.getElementById('weaknessList').innerHTML = weaknessesHtml;
-    
-    // Missing Skills
-    const missingSkillsHtml = missingSkills.length > 0 
-        ? missingSkills.map(skill => `<span class="skill-tag missing">${skill}</span>`).join('')
-        : '<p>No missing skills</p>';
-    document.getElementById('missingSkillsList').innerHTML = missingSkillsHtml;
-}
-
-// Populate Timeline View
-function populateTimelineView(roadmap) {
-    const timelineContainer = document.getElementById('roadmapTimeline');
-    timelineContainer.innerHTML = '';
-    
-    roadmap.weeklyPlan.forEach(weekPlan => {
-        weekPlan.modules.forEach(module => {
-            const timelineItem = document.createElement('div');
-            timelineItem.className = 'timeline-item';
-            timelineItem.innerHTML = `
-                <div class="timeline-content">
-                    <div class="timeline-date">Week ${module.week}</div>
-                    <div class="timeline-title">${module.title}</div>
-                    <div class="timeline-description">
-                        ${module.description}<br>
-                        <strong>Estimated Time:</strong> ${module.hoursRequired} hours
-                    </div>
-                    <div class="subtopics">
-                        ${module.subtopics.slice(0, 3).map(st => 
-                            `<span class="subtopic-tag">${st}</span>`
-                        ).join('')}
-                        ${module.subtopics.length > 3 ? 
-                            `<span class="subtopic-tag">+${module.subtopics.length - 3}</span>` : ''}
-                    </div>
-                </div>
-                <div class="timeline-marker">
-                    ${module.week}
-                </div>
-            `;
-            timelineContainer.appendChild(timelineItem);
-        });
-    });
-}
-
-// Populate Topics View
-function populateTopicsView(roadmap) {
-    const topicsList = document.getElementById('topicsList');
-    topicsList.innerHTML = '';
-    
-    roadmap.modules.forEach((module, index) => {
-        const topicCard = document.createElement('div');
-        topicCard.className = 'topic-card';
-        topicCard.innerHTML = `
-            <div class="topic-header">
-                <div class="topic-title">${module.title}</div>
-                <div class="topic-duration">${module.hoursRequired}h</div>
-            </div>
-            <div class="topic-subtopics">
-                ${module.subtopics.map(st => 
-                    `<span class="subtopic-tag">${st}</span>`
-                ).join('')}
-            </div>
-            <div class="topic-progress">
-                <div class="topic-progress-fill" style="width: 0%"></div>
-            </div>
-            <div class="topic-meta" style="margin-top: 1rem;">
-                <span class="topic-difficulty badge badge-${getDifficultyColor(module.difficulty)}">
-                    ${module.difficulty}
-                </span>
-                <span class="topic-week">Week ${module.week}</span>
-            </div>
-        `;
-        topicsList.appendChild(topicCard);
-    });
-}
-
-function getDifficultyColor(difficulty) {
-    switch(difficulty) {
-        case 'Beginner': return 'green';
-        case 'Intermediate': return 'orange';
-        case 'Advanced': return 'red';
-        default: return 'blue';
+    // Try partial match
+    for (const key in youtubeResources) {
+        if (skill.toLowerCase().includes(key.toLowerCase()) || 
+            key.toLowerCase().includes(skill.toLowerCase())) {
+            return youtubeResources[key];
+        }
     }
-}
-
-// Populate Weekly Schedule
-function populateWeeklySchedule(roadmap) {
-    const weeklySchedule = document.getElementById('weeklySchedule');
-    weeklySchedule.innerHTML = '';
     
-    roadmap.weeklyPlan.forEach(weekPlan => {
-        const daySchedule = document.createElement('div');
-        daySchedule.className = 'day-schedule';
-        daySchedule.innerHTML = `
-            <div class="day-header">
-                <div class="day-name">Week ${weekPlan.week}</div>
-                <div class="day-total">${weekPlan.totalHours} hours</div>
-            </div>
-            <div class="day-tasks">
-                ${weekPlan.modules.map(module => `
-                    <div class="task-item">
-                        <div class="task-time">${module.hoursRequired}h</div>
-                        <div class="task-details">
-                            <div class="task-title">${module.title}</div>
-                            <div class="task-description">
-                                ${module.subtopics.slice(0, 2).join(', ')}
-                                ${module.subtopics.length > 2 ? ` +${module.subtopics.length - 2} more` : ''}
-                            </div>
-                        </div>
-                        <div class="task-checkbox" onclick="markTaskComplete(this)"></div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-        weeklySchedule.appendChild(daySchedule);
-    });
-}
-
-function markTaskComplete(checkbox) {
-    checkbox.classList.toggle('completed');
-    checkbox.innerHTML = checkbox.classList.contains('completed') ? 
-        '<i class="fas fa-check"></i>' : '';
-    
-    // Update progress
-    updateOverallProgress();
-}
-
-// Populate Resources
-function populateResources(roadmap) {
-    const resourcesList = document.getElementById('resourcesList');
-    resourcesList.innerHTML = '';
-    
-    // Get all resources from all modules
-    const allResources = [];
-    roadmap.modules.forEach(module => {
-        module.resources.forEach(resource => {
-            if (!allResources.some(r => r.id === resource.id)) {
-                allResources.push(resource);
-            }
-        });
-    });
-    
-    // Display resources
-    allResources.forEach(resource => {
-        const resourceCard = document.createElement('div');
-        resourceCard.className = 'resource-card';
-        resourceCard.innerHTML = `
-            <div class="resource-header">
-                <div class="resource-type">
-                    <i class="fas ${resource.typeIcon}"></i> ${resource.type}
-                </div>
-                <div class="resource-rating">
-                    ${'★'.repeat(resource.rating)}${'☆'.repeat(5 - resource.rating)}
-                </div>
-            </div>
-            <div class="resource-title">${resource.title}</div>
-            <div class="resource-description">${resource.description}</div>
-            <div class="resource-meta">
-                <span>${resource.duration}</span>
-                <a href="${resource.url}" target="_blank" class="resource-link">Open Resource</a>
-            </div>
-        `;
-        resourcesList.appendChild(resourceCard);
-    });
-}
-
-// Switch between roadmap views
-function switchView(view) {
-    // Update tab buttons
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    event.target.classList.add('active');
-    
-    // Show selected view
-    document.querySelectorAll('.roadmap-view').forEach(viewEl => {
-        viewEl.classList.add('hidden');
-    });
-    document.getElementById(`${view}View`).classList.remove('hidden');
-}
-
-// Update overall progress
-function updateOverallProgress() {
-    const totalTasks = document.querySelectorAll('.task-checkbox').length;
-    const completedTasks = document.querySelectorAll('.task-checkbox.completed').length;
-    const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-    
-    document.getElementById('overallProgress').textContent = progress;
-    
-    // Update progress circle
-    const circle = document.getElementById('progressCircle');
-    const circumference = 2 * Math.PI * 40;
-    const offset = circumference - (progress / 100) * circumference;
-    circle.style.strokeDashoffset = offset;
+    // Return default resources
+    return youtubeResources['default'];
 }
