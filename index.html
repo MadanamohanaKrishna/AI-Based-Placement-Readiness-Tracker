@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Placement Path Navigator</title>
-    <link rel="stylesheet" href="CSS/style.css">
+    <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -18,9 +18,6 @@
             </div>
             <div class="nav-menu">
                 <a href="#home" class="nav-link active">Home</a>
-                <a href="#dashboard" class="nav-link">Dashboard</a>
-                <a href="#resources" class="nav-link">Resources</a>
-                <a href="#progress" class="nav-link">Progress</a>
             </div>
         </div>
     </nav>
@@ -29,7 +26,7 @@
     <section id="home" class="hero">
         <div class="container">
             <div class="hero-content">
-                <h1>Your Personalized Path to <span class="gradient-text">Dream Placement</span></h1>
+                <h1>Your Personalized Path to Dream Placement</h1>
                 <p>AI-powered guidance to bridge the gap between academic learning and industry requirements</p>
                 <button class="btn btn-primary btn-large" onclick="startJourney()">
                     Start Your Journey <i class="fas fa-arrow-right"></i>
@@ -37,19 +34,12 @@
             </div>
             <div class="hero-stats">
                 <div class="stat-card">
-                    <i class="fas fa-building"></i>
-                    <h3>500+</h3>
-                    <p>Companies</p>
-                </div>
-                <div class="stat-card">
                     <i class="fas fa-book"></i>
-                    <h3>1000+</h3>
-                    <p>Resources</p>
+                    <h3>Personalized Available Resources</h3>
                 </div>
                 <div class="stat-card">
                     <i class="fas fa-users"></i>
-                    <h3>10K+</h3>
-                    <p>Students</p>
+                    <h3>For College Students</h3>
                 </div>
             </div>
         </div>
@@ -64,7 +54,7 @@
                     <h2>Step 1: Choose Your Target Role</h2>
                     <p>Select the job role you're preparing for</p>
                     <div class="progress-bar">
-                        <div class="progress-fill" style="width: 20%"></div>
+                        <div class="progress-fill" style="width: 25%"></div>
                     </div>
                 </div>
 
@@ -103,7 +93,7 @@
                     <h2>Step 2: Select Target Companies</h2>
                     <p>Choose companies you're aiming for (select at least 3)</p>
                     <div class="progress-bar">
-                        <div class="progress-fill" style="width: 40%"></div>
+                        <div class="progress-fill" style="width: 50%"></div>
                     </div>
                 </div>
 
@@ -115,10 +105,11 @@
 
                     <div class="filter-chips">
                         <span class="chip">Selected: <strong id="selectedCount">0</strong></span>
-                        <button class="chip-btn" onclick="filterCompanies('product')">Product Based</button>
-                        <button class="chip-btn" onclick="filterCompanies('service')">Service Based</button>
-                        <button class="chip-btn" onclick="filterCompanies('startup')">Startups</button>
-                        <button class="chip-btn" onclick="filterCompanies('mnc')">MNCs</button>
+                        <button class="chip-btn" onclick="filterCompanyByType('product')">Product Based</button>
+                        <button class="chip-btn" onclick="filterCompanyByType('service')">Service Based</button>
+                        <button class="chip-btn" onclick="filterCompanyByType('startup')">Startups</button>
+                        <button class="chip-btn" onclick="filterCompanyByType('mnc')">MNCs</button>
+                        <button class="chip-btn" onclick="filterCompanyByType('all')">All</button>
                     </div>
 
                     <div id="companyGrid" class="company-grid">
@@ -137,57 +128,19 @@
             </div>
         </section>
 
-        <!-- Step 3: Skills Assessment -->
+        <!-- Step 3: Skills Assessment (Only Skills Test) -->
         <section id="step-3" class="step-section">
             <div class="container">
                 <div class="step-header">
                     <h2>Step 3: Skills Assessment</h2>
-                    <p>Upload your resume or take a quick skills test</p>
+                    <p>Answer a few questions to help us assess your current knowledge</p>
                     <div class="progress-bar">
-                        <div class="progress-fill" style="width: 60%"></div>
+                        <div class="progress-fill" style="width: 75%"></div>
                     </div>
                 </div>
 
-                <div class="assessment-options">
-                    <div class="option-card" onclick="selectAssessmentMethod('resume')">
-                        <i class="fas fa-file-upload"></i>
-                        <h3>Upload Resume</h3>
-                        <p>We'll analyze your resume to understand your current skill level</p>
-                        <input type="file" id="resumeUpload" accept=".pdf,.doc,.docx" class="hidden" onchange="handleResumeUpload(event)">
-                    </div>
-                    <div class="option-card" onclick="selectAssessmentMethod('test')">
-                        <i class="fas fa-clipboard-check"></i>
-                        <h3>Take Skills Test</h3>
-                        <p>Answer a few questions to help us assess your current knowledge</p>
-                    </div>
-                    <div class="option-card" onclick="selectAssessmentMethod('manual')">
-                        <i class="fas fa-hand-pointer"></i>
-                        <h3>Manual Selection</h3>
-                        <p>Manually select your current skill proficiency levels</p>
-                    </div>
-                </div>
-
-                <!-- Resume Upload Section -->
-                <div id="resumeSection" class="assessment-section hidden">
-                    <div class="upload-area" id="uploadArea">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        <h3>Drop your resume here</h3>
-                        <p>or click to browse (PDF, DOC, DOCX)</p>
-                        <button class="btn btn-outline" onclick="document.getElementById('resumeUpload').click()">
-                            Choose File
-                        </button>
-                    </div>
-                    <div id="resumeAnalysis" class="hidden">
-                        <div class="analysis-result">
-                            <i class="fas fa-check-circle"></i>
-                            <h3>Resume Analyzed Successfully!</h3>
-                            <div id="extractedSkills"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Skills Test Section -->
-                <div id="testSection" class="assessment-section hidden">
+                <!-- Skills Test Section (Auto-starts) -->
+                <div id="testSection" class="assessment-section">
                     <div class="quiz-container">
                         <div class="quiz-header">
                             <h3>Question <span id="questionNumber">1</span> of <span id="totalQuestions">10</span></h3>
@@ -210,32 +163,22 @@
                     </div>
                 </div>
 
-                <!-- Manual Skills Selection -->
-                <div id="manualSection" class="assessment-section hidden">
-                    <div class="skills-selection">
-                        <div id="skillCategories"></div>
-                    </div>
-                </div>
-
                 <div class="step-actions">
                     <button class="btn btn-secondary" onclick="prevStep(2)">
                         <i class="fas fa-arrow-left"></i> Back
-                    </button>
-                    <button class="btn btn-primary" onclick="nextStep(4)" id="assessmentNextBtn" disabled>
-                        Next <i class="fas fa-arrow-right"></i>
                     </button>
                 </div>
             </div>
         </section>
 
-        <!-- Step 4: Timeline Selection -->
+        <!-- Step 4: Timeline Selection (Simplified) -->
         <section id="step-4" class="step-section">
             <div class="container">
                 <div class="step-header">
                     <h2>Step 4: Preparation Timeline</h2>
                     <p>When do you plan to appear for placements?</p>
                     <div class="progress-bar">
-                        <div class="progress-fill" style="width: 80%"></div>
+                        <div class="progress-fill" style="width: 90%"></div>
                     </div>
                 </div>
 
@@ -247,39 +190,17 @@
                             <p>Intensive preparation</p>
                             <span class="badge badge-red">High Intensity</span>
                         </div>
-                        <div class="timeline-card" onclick="selectTimeline('3-months')">
+                        <div class="timeline-card recommended" onclick="selectTimeline('3-months')">
                             <i class="fas fa-fire"></i>
                             <h3>3 Months</h3>
                             <p>Balanced approach</p>
-                            <span class="badge badge-orange">Medium Intensity</span>
+                            <span class="badge badge-green">Recommended</span>
                         </div>
-                        <div class="timeline-card recommended" onclick="selectTimeline('6-months')">
+                        <div class="timeline-card" onclick="selectTimeline('6-months')">
                             <i class="fas fa-star"></i>
                             <h3>6 Months</h3>
                             <p>Comprehensive preparation</p>
-                            <span class="badge badge-green">Recommended</span>
-                        </div>
-                        <div class="timeline-card" onclick="selectTimeline('custom')">
-                            <i class="fas fa-calendar-alt"></i>
-                            <h3>Custom</h3>
-                            <p>Set your own pace</p>
-                            <span class="badge badge-blue">Flexible</span>
-                        </div>
-                    </div>
-
-                    <div id="customTimeline" class="custom-timeline hidden">
-                        <label>Select your target date:</label>
-                        <input type="date" id="targetDate" onchange="calculateCustomTimeline()">
-                        <div id="customTimelineInfo"></div>
-                    </div>
-
-                    <div class="study-hours">
-                        <label>How many hours can you dedicate per day?</label>
-                        <div class="slider-container">
-                            <input type="range" id="hoursSlider" min="1" max="12" value="4" oninput="updateHours(this.value)">
-                            <div class="slider-value">
-                                <span id="hoursValue">4</span> hours/day
-                            </div>
+                            <span class="badge badge-blue">Thorough</span>
                         </div>
                     </div>
                 </div>
@@ -311,48 +232,33 @@
                     <h3><i class="fas fa-chart-line"></i> Skill Gap Analysis</h3>
                     <div class="gap-analysis">
                         <div class="gap-card strength">
-                            <h4>Your Strengths</h4>
+                            <h4><i class="fas fa-check-circle"></i> Your Strengths</h4>
                             <div id="strengthsList"></div>
                         </div>
                         <div class="gap-card weakness">
-                            <h4>Areas to Improve</h4>
+                            <h4><i class="fas fa-exclamation-triangle"></i> Areas to Improve</h4>
                             <div id="weaknessList"></div>
                         </div>
                         <div class="gap-card missing">
-                            <h4>Skills to Learn</h4>
+                            <h4><i class="fas fa-times-circle"></i> Your Weaknesses</h4>
                             <div id="missingSkillsList"></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Learning Roadmap -->
+                <!-- Learning Roadmap (Only Timeline View) -->
                 <div class="roadmap-container">
                     <h3><i class="fas fa-road"></i> Your Learning Path</h3>
-                    <div class="roadmap-tabs">
-                        <button class="tab-btn active" onclick="switchView('timeline')">Timeline View</button>
-                        <button class="tab-btn" onclick="switchView('topics')">Topics View</button>
-                        <button class="tab-btn" onclick="switchView('schedule')">Weekly Schedule</button>
-                    </div>
-
-                    <!-- Timeline View -->
+                    
+                    <!-- Timeline View Only -->
                     <div id="timelineView" class="roadmap-view active">
                         <div id="roadmapTimeline" class="timeline"></div>
                     </div>
-
-                    <!-- Topics View -->
-                    <div id="topicsView" class="roadmap-view hidden">
-                        <div id="topicsList" class="topics-list"></div>
-                    </div>
-
-                    <!-- Schedule View -->
-                    <div id="scheduleView" class="roadmap-view hidden">
-                        <div id="weeklySchedule" class="weekly-schedule"></div>
-                    </div>
                 </div>
 
-                <!-- Resource Recommendations -->
+                <!-- Resource Recommendations (YouTube) -->
                 <div class="resources-section">
-                    <h3><i class="fas fa-book-open"></i> Recommended Resources</h3>
+                    <h3><i class="fab fa-youtube"></i> Recommended YouTube Resources</h3>
                     <div id="resourcesList" class="resources-grid"></div>
                 </div>
 
@@ -370,12 +276,14 @@
             </div>
         </section>
 
-        <!-- Dashboard -->
+                <!-- Dashboard (Updated with +/- buttons) -->
+                <!-- Dashboard (Updated with +/- buttons for skills) -->
         <section id="dashboard" class="dashboard-section hidden">
             <div class="container">
-                <h2>Your Learning Dashboard</h2>
+                <h2><i class="fas fa-tachometer-alt"></i> Your Learning Dashboard</h2>
                 
                 <div class="dashboard-grid">
+                    <!-- Progress Card with +/- buttons -->
                     <div class="dashboard-card">
                         <h3>Overall Progress</h3>
                         <div class="progress-circle">
@@ -387,33 +295,65 @@
                                 <span id="overallProgress">0</span>%
                             </div>
                         </div>
+                        <div class="progress-controls">
+                            <button class="control-btn minus" onclick="adjustProgress(-5)" title="Decrease by 5%">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <span>Adjust Progress</span>
+                            <button class="control-btn plus" onclick="adjustProgress(5)" title="Increase by 5%">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
                     </div>
 
+                    <!-- Current Focus -->
                     <div class="dashboard-card">
                         <h3>Current Focus</h3>
                         <div id="currentFocus"></div>
                     </div>
 
+                    <!-- Streak Card with +/- buttons -->
                     <div class="dashboard-card">
-                        <h3>Streak</h3>
+                        <h3>Learning Streak</h3>
                         <div class="streak-display">
                             <i class="fas fa-fire"></i>
                             <span id="streakDays">0</span> days
                         </div>
+                        <div class="streak-controls">
+                            <button class="control-btn minus" onclick="adjustStreak(-1)" title="Decrease by 1 day">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <span>Adjust Streak</span>
+                            <button class="control-btn plus" onclick="adjustStreak(1)" title="Increase by 1 day">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
                     </div>
 
+                    <!-- Time Remaining with Watch Icon -->
                     <div class="dashboard-card">
-                        <h3>Time to Goal</h3>
-                        <div id="timeRemaining"></div>
+                        <h3><i class="fas fa-stopwatch"></i> Time to Goal</h3>
+                        <div id="timeRemaining" class="time-remaining-display"></div>
                     </div>
                 </div>
 
-                <div class="activity-section">
-                    <h3>Recent Activity</h3>
-                    <div id="activityLog"></div>
+                <!-- Skills Progress with Individual Counters -->
+                <div class="skills-progress-section">
+                    <h3><i class="fas fa-tasks"></i> Skills Progress</h3>
+                    <div id="skillsProgressList"></div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="dashboard-actions">
+                    <button class="btn btn-secondary" onclick="backToRoadmap()">
+                        <i class="fas fa-arrow-left"></i> Back to Roadmap
+                    </button>
+                    <button class="btn btn-primary" onclick="goHome()">
+                        <i class="fas fa-home"></i> Go Home
+                    </button>
                 </div>
             </div>
-        </section>
+        </section>  
     </main>
 
     <!-- Loading Overlay -->
@@ -425,9 +365,9 @@
     </div>
 
     <!-- Scripts -->
-    <script src="JS/app.js"></script>
-    <script src="JS/assessment.js"></script>
-    <script src="JS/roadmap.js"></script>
-    <script src="JS/resources.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/assessment.js"></script>
+    <script src="js/roadmap.js"></script>
+    <script src="js/resources.js"></script>
 </body>
 </html>
