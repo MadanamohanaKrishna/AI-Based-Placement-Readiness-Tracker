@@ -4,8 +4,6 @@ window.generateRoadmap = function generateRoadmap() {
     const loader = document.getElementById('loadingOverlay');
     if (loader) loader.classList.remove('hidden');
 
-    console.log("Using existing AI data...");
-
     createRoadmap();
 
     if (loader) loader.classList.add('hidden');
@@ -16,8 +14,21 @@ window.generateRoadmap = function generateRoadmap() {
 
     document.getElementById('step-5').classList.add('active');
     window.scrollTo(0, 0);
-};
 
+    
+};
+function startLearning() {
+    document.querySelectorAll('.step-section').forEach(section => {
+        section.classList.remove('active');
+    });
+
+    document.getElementById('dashboard').classList.remove('hidden');
+
+    // 🔥 THIS is the key
+    initializeDashboard();
+
+    window.scrollTo(0, 0);
+}
 function createRoadmap() {
     const { strengths, areasToImprove, weaknesses } = appState.userProfile;
     
@@ -36,6 +47,8 @@ function createRoadmap() {
     
     // Populate YouTube resources
     populateYouTubeResources(skillsToLearn);
+
+    populateSkillsProgress();
 }
 
 // Populate Skill Gap Analysis
@@ -112,16 +125,46 @@ function generateLearningPath(skillsToLearn, timeline) {
     
     // Distribute across weeks
     const weeklyPlan = [];
-    const skillsPerWeek = Math.ceil(modules.length / totalWeeks) || 1;
-    
-    for (let week = 0; week < totalWeeks && modules.length > 0; week++) {
-        const weekSkills = modules.splice(0, skillsPerWeek);
-        if (weekSkills.length > 0) {
-            weeklyPlan.push({
-                week: week + 1,
-                skills: weekSkills
+    const revisionTypes = [
+                    {
+                        title: "Revision & Practice",
+                        hours: 10,
+                        subtopics: ["Revise concepts", "Practice problems"]
+                    },
+                    {
+                        title: "Mini Project",
+                        hours: 20,
+                        subtopics: ["Build small project", "Apply learned skills"]
+                    },
+                    {
+                        title: "Mock Interviews",
+                        hours: 10,
+                        subtopics: ["DSA practice", "System design basics"]
+                    }
+                ];
+    for (let week = 0; week < totalWeeks; week++) {
+        const weekSkills = [];
+
+        // Distribute skills across weeks evenly
+        for (let i = week; i < modules.length; i += totalWeeks) {
+            weekSkills.push(modules[i]);
+        }
+
+        // If no skills, add smart filler
+        if (weekSkills.length === 0) {
+            const type = revisionTypes[week % revisionTypes.length];
+
+            weekSkills.push({
+                title: type.title,
+                hours: type.hours,
+                subtopics: type.subtopics
             });
         }
+
+        weeklyPlan.push({
+            week: week + 1,
+            skills: weekSkills
+        });
     }
     
     return { totalWeeks, weeklyPlan };
@@ -174,12 +217,30 @@ function populateTimelineView(roadmap) {
                 <div class="timeline-description">
                     Focus on mastering these skills. Estimated time: ${totalHours} hours
                 </div>
+
+                <div class="progress-bar-small">
+                    <div class="progress-fill-small"></div>
+                </div>
                 <div class="timeline-skills">
-                    ${allSubtopics.slice(0, 4).map(st => `<span class="timeline-skill-tag">${st}</span>`).join('')}
+                    ${allSubtopics.slice(0, 4).map((st, i) => `
+                        <label class="task-item">
+                            <input type="checkbox" disabled>
+                            ${st}
+                        </label>
+                    `).join('')}
                 </div>
             </div>
         `;
         timelineContainer.appendChild(timelineItem);
+        // Restore checkbox state if exists
+        const savedState = JSON.parse(localStorage.getItem("appState"));
+        if (savedState?.checkboxStates) {
+            const checkboxes = timelineItem.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach((cb, i) => {
+                const key = `week-${week.week}-task-${i}`;
+                cb.checked = savedState.checkboxStates[key] || false;
+            });
+        }
     });
 }
 
@@ -230,3 +291,76 @@ function populateYouTubeResources(skills) {
         resourcesList.appendChild(resourceCard);
     });
 }
+
+
+
+function adjustProgress(delta) {
+    const current = appState.overallProgress || 0;
+    updateOverallProgressManual(current + delta);
+}
+
+function updateCurrentFocus() {
+    const focusEl = document.getElementById('currentFocus');
+    if (!focusEl) return;
+
+    const skills = [
+        ...(appState.userProfile.weaknesses || []),
+        ...(appState.userProfile.areasToImprove || [])
+    ];
+
+    focusEl.innerHTML = `
+        <div><strong>${skills[0] || "Start Learning"}</strong></div>
+        <div style="opacity:0.6">${skills[1] || ""}</div>
+    `;
+}
+
+function updateTimeRemaining() {
+    const map = {
+        '1-month': 30,
+        '3-months': 90,
+        '6-months': 180
+    };
+
+    const days = map[appState.timeline] || 90;
+
+    const el = document.getElementById('timeRemaining');
+    if (el) {
+        el.innerHTML = `<strong>${days}</strong> days remaining`;
+    }
+}
+
+function populateSkillsProgress() {
+    const container = document.getElementById('skillsProgressList');
+    if (!container) return;
+
+    const skills = [
+        ...(appState.userProfile.weaknesses || []),
+        ...(appState.userProfile.areasToImprove || [])
+    ];
+
+    container.innerHTML = skills.map(skill => `
+        <div class="skill-progress-item">
+            <span>${skill}</span>
+            <span id="skill-${skill}">0%</span>
+            <button onclick="adjustSkill('${skill}', 10)">+</button>
+            <button onclick="adjustSkill('${skill}', -10)">-</button>
+        </div>
+    `).join('');
+}
+
+function adjustSkill(skill, delta) {
+    if (!appState.skillProgress) {
+        appState.skillProgress = {};
+    }
+
+    let current = appState.skillProgress[skill] || 0;
+    current = Math.max(0, Math.min(100, current + delta));
+
+    appState.skillProgress[skill] = current;
+
+    const el = document.getElementById(`skill-${skill}`);
+    if (el) el.textContent = current + "%";
+}
+
+
+
