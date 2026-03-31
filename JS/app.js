@@ -1,5 +1,5 @@
 // Global State
-const appState = {
+window.appState = {
     currentStep: 0,
     selectedRole: null,
     selectedCompanies: [],

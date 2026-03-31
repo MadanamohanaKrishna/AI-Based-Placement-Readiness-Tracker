@@ -33,7 +33,7 @@ function generateRoleSpecificQuestions(roleId) {
             { question: 'Understanding of caching strategies?', skill: 'Caching' },
             { question: 'Experience with message queues?', skill: 'Message Queues' }
         ],
-        
+     
         // Full Stack
         'fullstack-dev': [
             { question: 'How comfortable are you with frontend development?', skill: 'Frontend Development' },
@@ -272,26 +272,47 @@ function previousQuestion() {
 }
 
 function finishQuiz() {
-    // Process quiz results with CORRECT SCORE MAPPING
-    // Options: ['Expert', 'Intermediate', 'Beginner', 'No experience']
-    // Index:   [   0    ,      1        ,     2     ,       3        ]
-    
     const skills = quizQuestions.map((q, index) => {
         const selectedOption = quizAnswers[index];
         const level = q.options[selectedOption];
-        
+
         return {
             name: q.skill,
             level: level,
             selectedIndex: selectedOption
         };
     });
-    
-    appState.assessmentData = { skills };
-    analyzeSkillGap(skills);
-    
-    // Go to Step 4 (Timeline)
-    nextStep(4);
+
+    // 🔥 CALL BACKEND
+    fetch("http://localhost:3000/analyze", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            role: appState.selectedRole,
+            skills: skills
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log("AI RESULT:", data);
+
+        // ✅ Store result
+        appState.userProfile.strengths = data.strengths || [];
+        appState.userProfile.areasToImprove = data.areasToImprove || [];
+        appState.userProfile.weaknesses = data.weaknesses || [];
+        appState.userProfile.recommendations = data.recommendations || [];
+
+        nextStep(4);
+    })
+    .catch(err => {
+        console.error("API ERROR:", err);
+
+        // fallback
+        analyzeSkillGap(skills);
+        nextStep(4);
+    });
 }
 
 // CORRECTED Skill Gap Analysis

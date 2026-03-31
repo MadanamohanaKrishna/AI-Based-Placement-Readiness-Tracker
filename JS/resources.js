@@ -1,43 +1,33 @@
 // Roadmap Generation
-function generateRoadmap() {
-    // Show loading overlay
+console.log("resources.js loaded");
+window.generateRoadmap = function generateRoadmap() {
     const loader = document.getElementById('loadingOverlay');
-    if(loader) loader.classList.remove('hidden');
-    
-    console.log("Generating roadmap...");
-    console.log("Current State:", appState);
+    if (loader) loader.classList.remove('hidden');
 
-    // Simulate AI processing
-    setTimeout(() => {
-        try {
-            createRoadmap();
-            
-            // Hide loader
-            if(loader) loader.classList.add('hidden');
-            
-            // Switch to step 5
-            document.querySelectorAll('.step-section').forEach(section => {
-                section.classList.remove('active');
-            });
-            document.getElementById('step-5').classList.add('active');
-            window.scrollTo(0, 0);
-            
-        } catch (error) {
-            console.error("Error generating roadmap:", error);
-            alert("An error occurred while generating your roadmap. Please try again.\n\nError: " + error.message);
-            if(loader) loader.classList.add('hidden');
-        }
-    }, 2500);
-}
+    console.log("Using existing AI data...");
+
+    createRoadmap();
+
+    if (loader) loader.classList.add('hidden');
+
+    document.querySelectorAll('.step-section').forEach(section => {
+        section.classList.remove('active');
+    });
+
+    document.getElementById('step-5').classList.add('active');
+    window.scrollTo(0, 0);
+};
 
 function createRoadmap() {
     const { strengths, areasToImprove, weaknesses } = appState.userProfile;
     
     // Populate skill gap analysis
     populateSkillGapAnalysis(strengths, areasToImprove, weaknesses);
+
+    populateRecommendations();
     
     // Generate timeline
-    const skillsToLearn = [...weaknesses, ...areasToImprove];
+    const skillsToLearn = [...new Set([...weaknesses, ...areasToImprove])];
     const roadmap = generateLearningPath(skillsToLearn, appState.timeline);
     appState.roadmap = roadmap;
     
@@ -67,6 +57,29 @@ function populateSkillGapAnalysis(strengths, areasToImprove, weaknesses) {
         ? weaknesses.map(skill => `<span class="skill-tag missing">${skill}</span>`).join('')
         : '<p class="empty-state">No weaknesses detected</p>';
     document.getElementById('missingSkillsList').innerHTML = weaknessesHtml;
+}
+
+function populateRecommendations() {
+    const container = document.getElementById('recommendationsList');
+    
+    if (!container) return; // safety
+
+    const recs = appState.userProfile.recommendations || [];
+
+    if (recs.length === 0) {
+        container.innerHTML = '<p class="empty-state">No recommendations</p>';
+        return;
+    }
+
+    container.innerHTML = recs.map(r => `
+        <div class="recommendation-item">
+            <i class="fas fa-lightbulb"></i>
+            <span>${r.text}</span>
+<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(r.youtubeQuery)}" target="_blank">
+  Watch
+</a>
+        </div>
+    `).join('');
 }
 
 // Generate Learning Path
